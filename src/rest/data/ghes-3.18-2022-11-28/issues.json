@@ -19367,6 +19367,11 @@
           ]
         },
         {
+          "type": "integer",
+          "name": "duplicate_issue_id",
+          "description": "<p>The ID of the issue to mark as the canonical duplicate when <code>state_reason</code> is <code>duplicate</code>. The issue must exist and be accessible to the authenticated user. Ignored when <code>state_reason</code> is not <code>duplicate</code>.</p>"
+        },
+        {
           "type": "null or string or integer",
           "name": "milestone",
           "description": "<p>The <code>number</code> of the milestone to associate this issue with or use <code>null</code> to remove the current milestone. Only users with push access can set the milestone for issues. Without push access to the repository, milestone changes are silently dropped.</p>"

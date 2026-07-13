@@ -6,6 +6,7 @@ import type { Root as HastRoot } from 'hast'
 import cx from 'classnames'
 
 import { markdownComponents } from './markdownComponents'
+import { renderHTMLString } from '@/frame/components/ui/RenderedHTML/render-html-string'
 import styles from './MarkdownContent.module.scss'
 
 export type MarkdownContentPropsT = {
@@ -15,9 +16,9 @@ export type MarkdownContentPropsT = {
   as?: keyof JSX.IntrinsicElements
 }
 
-// Memoized so that re-renders of the parent (e.g. when ToolPicker/PlatformPicker
-// state updates) don't cause React 19 to re-apply `dangerouslySetInnerHTML` and
-// wipe out the inline `display` styles set imperatively by the pickers.
+// Memoized so that unrelated parent re-renders (e.g. ToolPicker/PlatformPicker
+// state updates) don't re-parse the HTML string and rebuild the body's element
+// tree, which is the expensive part of rendering an article.
 export const MarkdownContent = memo(function MarkdownContent({
   children,
   hast,
@@ -25,12 +26,13 @@ export const MarkdownContent = memo(function MarkdownContent({
   className,
   ...restProps
 }: MarkdownContentPropsT) {
-  // When a hast (HTML AST) tree is provided, render it as real React elements
-  // instead of injecting an HTML string via dangerouslySetInnerHTML (#6619).
+  // Render trusted HTML as real React elements instead of injecting it as raw
+  // innerHTML (#6619). Prefer a hast (HTML AST) tree when provided; otherwise
+  // parse a rendered HTML string. Non-string children render as-is.
   const childProps = hast
     ? { children: toJsxRuntime(hast, { Fragment, jsx, jsxs, components: markdownComponents }) }
     : typeof children === 'string'
-      ? { dangerouslySetInnerHTML: { __html: children } }
+      ? { children: renderHTMLString(children, markdownComponents) }
       : { children }
 
   return (
